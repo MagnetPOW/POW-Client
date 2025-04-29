@@ -13,8 +13,8 @@ const rpcOptions = [
     'https://node4.magnetchain.xyz'
 ];
 
-// 合约地址（请替换为新部署的合约地址）
-const CONTRACT_ADDRESS = '0xeb9a64d18d6d5248f3505cbea4739da38e9f84b2'; // 确认是否正确
+// 合约地址
+const CONTRACT_ADDRESS = '0xeb9a64d18d6d5248f3505cbea4739da38e9f84b2';
 
 // 合约 ABI
 const CONTRACT_ABI = [
@@ -313,30 +313,37 @@ if (isMainThread) {
                 }
                 console.log(chalk.cyan(`任务 / Task: nonce=${nonce}, difficulty=${difficulty}`));
 
-                // 计算解决方案（多线程）
-                console.log(chalk.cyan('正在计算解决方案 / Calculating solution...'));
-                const solution = await mineSolution(nonce, wallet.address, difficulty);
-                if (solution === null) {
-                    console.log(chalk.yellow('未找到解决方案 / No solution found'));
-                    continue;
-                }
-                console.log(chalk.green(`找到解决方案 / Solution found: ${solution}`));
+                // 循环直到找到并成功提交解决方案
+                let solution = null;
+                while (solution === null) {
+                    console.log(chalk.cyan('正在计算解决方案 / Calculating solution...'));
+                    solution = await mineSolution(nonce, wallet.address, difficulty);
+                    if (solution === null) {
+                        console.log(chalk.yellow('未找到解决方案，继续尝试 / No solution found, retrying...'));
+                        continue;
+                    }
+                    console.log(chalk.green(`找到解决方案 / Solution found: ${solution}`));
 
-                // 提交解决方案
-                console.log(chalk.cyan('提交解决方案 / Submitting solution...'));
-                let submitTx;
-                try {
-                    const gasLimit = await contract.estimateGas.submitMiningResult(solution);
-                    submitTx = await contract.submitMiningResult(solution, { gasLimit: gasLimit.mul(120).div(100) });
-                } catch (gasError) {
-                    throw new Error(`Gas estimation failed for submit: ${gasError.message}`);
-                }
-                const submitReceipt = await submitTx.wait();
-                console.log(chalk.green(`提交成功 / Submission successful, 交易哈希 / Transaction hash: ${submitReceipt.transactionHash}`));
+                    // 提交解决方案
+                    console.log(chalk.cyan('提交解决方案 / Submitting solution...'));
+                    try {
+                        const gasLimit = await contract.estimateGas.submitMiningResult(solution);
+                        const submitTx = await contract.submitMiningResult(solution, { gasLimit: gasLimit.mul(120).div(100) });
+                        const submitReceipt = await submitTx.wait();
+                        console.log(chalk.green(`提交成功 / Submission successful, 交易哈希 / Transaction hash: ${submitReceipt.transactionHash}`));
+                    } catch (submitError) {
+                        console.error(chalk.red('提交失败 / Submission failed:'), submitError.message);
+                        console.log(chalk.yellow('5秒后重试当前任务 / Retrying current task in 5 seconds...'));
+                        await new Promise(resolve => setTimeout(resolve, 5000));
+                        solution = null; // 重置解决方案，重新尝试
+                        continue;
+                    }
 
-                // 显示余额变化
-                const newBalance = await provider.getBalance(wallet.address);
-                console.log(chalk.green(`当前余额 / Current balance: ${ethers.utils.formatEther(newBalance)} MAG`));
+                    // 显示余额变化
+                    const newBalance = await provider.getBalance(wallet.address);
+                    console.log(chalk.green(`当前余额 / Current balance: ${ethers.utils.formatEther(newBalance)} MAG`));
+                    break; // 成功提交后退出循环，获取新任务
+                }
             } catch (error) {
                 if (error.code === 'CALL_EXCEPTION') {
                     console.error(chalk.red('挖矿失败 / Mining failed: 交易被合约拒绝 / Transaction reverted by contract'));
@@ -357,12 +364,12 @@ if (isMainThread) {
     // 多线程挖矿函数
     async function mineSolution(nonce, address, difficulty) {
         return new Promise((resolve) => {
-            const maxAttempts = 60000000; // 6000万次，确保1分钟内90%概率
-            const timeoutMs = 60000; // 60秒超时
+            const batchSize = 60000000; // 每批尝试6000万次
             const numWorkers = os.cpus().length; // 使用所有 CPU 核心
-            const chunkSize = Math.ceil(maxAttempts / numWorkers);
+            const chunkSize = Math.ceil(batchSize / numWorkers);
             let workersCompleted = 0;
             let solutionFound = null;
+            let currentBatch = 0;
 
             // 动态更新控制台
             const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -375,53 +382,56 @@ if (isMainThread) {
                 process.stdout.write(chalk.gray(`尝试次数 / Attempts: ${currentAttempts}, 当前哈希 / Current hash: ${lastHash.substring(0, 16)}...`));
             }
 
-            // 设置超时
-            const timeout = setTimeout(() => {
-                workersCompleted = numWorkers; // 强制终止所有工作线程
-                resolve(null); // 返回 null，触发新任务请求
-            }, timeoutMs);
+            function startBatch() {
+                workersCompleted = 0;
+                for (let i = 0; i < numWorkers; i++) {
+                    const start = currentBatch * batchSize + i * chunkSize;
+                    const end = Math.min(start + chunkSize, (currentBatch + 1) * batchSize);
+                    const worker = new Worker(__filename, {
+                        workerData: { nonce, address, difficulty, start, end }
+                    });
 
-            // 创建工作线程
-            for (let i = 0; i < numWorkers; i++) {
-                const start = i * chunkSize;
-                const end = Math.min(start + chunkSize, maxAttempts);
-                const worker = new Worker(__filename, {
-                    workerData: { nonce, address, difficulty, start, end }
-                });
-
-                worker.on('message', (msg) => {
-                    if (msg.type === 'solution') {
-                        if (msg.solution !== null) {
+                    worker.on('message', (msg) => {
+                        if (msg.type === 'solution' && msg.solution !== null) {
                             solutionFound = msg.solution;
                             workersCompleted = numWorkers; // 找到解决方案，终止所有线程
-                            clearTimeout(timeout); // 清除超时
+                        } else if (msg.type === 'progress') {
+                            currentAttempts = Math.max(currentAttempts, msg.attempts);
+                            lastHash = msg.hash || lastHash;
+                            updateProgress();
                         }
-                    } else if (msg.type === 'progress') {
-                        currentAttempts = Math.max(currentAttempts, msg.attempts);
-                        lastHash = msg.hash || lastHash;
-                        updateProgress();
-                    }
-                });
+                    });
 
-                worker.on('error', (err) => {
-                    console.error(chalk.red('工作线程错误 / Worker error:'), err.message);
-                    workersCompleted++;
-                    if (workersCompleted === numWorkers) {
-                        clearTimeout(timeout);
-                        rl.close();
-                        resolve(solutionFound);
-                    }
-                });
+                    worker.on('error', (err) => {
+                        console.error(chalk.red('工作线程错误 / Worker error:'), err.message);
+                        workersCompleted++;
+                        if (workersCompleted === numWorkers) {
+                            rl.close();
+                            if (solutionFound) {
+                                resolve(solutionFound);
+                            } else {
+                                currentBatch++;
+                                startBatch(); // 继续下一批
+                            }
+                        }
+                    });
 
-                worker.on('exit', () => {
-                    workersCompleted++;
-                    if (workersCompleted === numWorkers) {
-                        clearTimeout(timeout);
-                        rl.close();
-                        resolve(solutionFound);
-                    }
-                });
+                    worker.on('exit', () => {
+                        workersCompleted++;
+                        if (workersCompleted === numWorkers) {
+                            rl.close();
+                            if (solutionFound) {
+                                resolve(solutionFound);
+                            } else {
+                                currentBatch++;
+                                startBatch(); // 继续下一批
+                            }
+                        }
+                    });
+                }
             }
+
+            startBatch(); // 启动第一批
         });
     }
 
@@ -445,7 +455,7 @@ if (isMainThread) {
             process.exit(0);
         }
 
-        if (solution % 100000 === 0) { // 每10万次更新一次进度
+        if (solution % 1000000 === 0) { // 每100万次更新一次进度
             parentPort.postMessage({ type: 'progress', attempts: solution, hash });
         }
     }
