@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "dotenv": "^16.5.0",
+    "ethers": "^5.8.0",
+    "readline-sync": "^1.4.10"
+  }
+}
