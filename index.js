@@ -207,6 +207,9 @@ const CONTRACT_ABI = [
 async function main() {
     console.log(chalk.bold.bgCyan.black(' 你好，欢迎使用 Magnet POW 区块链挖矿客户端！ '));
     console.log(chalk.bold.bgCyan.black(' Hello, welcome to Magnet POW Blockchain Mining Client! '));
+    console.log(chalk.bold.magenta('启动挖矿客户端，需要确保钱包里有0.1MAG，如果没有，加入TG群免费领取0.1 MAG空投。'));
+    console.log(chalk.bold.magenta('To start the mining client, ensure your wallet has 0.1 MAG. If not, join the Telegram group for a free 0.1 MAG airdrop.'));
+    console.log(chalk.bold.magenta('TG群链接 / Telegram group link: https://t.me/MagnetPOW'));
 
     // 选择 RPC 节点
     console.log(chalk.bold('\n选择 RPC 节点 / Select RPC Node:'));
@@ -276,7 +279,7 @@ async function main() {
         console.error(chalk.red('获取合约余额失败 / Failed to get contract balance:'), balanceError.message);
         process.exit(1);
     }
-    const minContractBalance = ethers.utils.parseEther('1000'); // LEVEL1000_REWARD
+    const minContractBalance = ethers.utils.parseEther('1000'); // LEVEL1000_RE.reward
     if (contractBalance.lt(minContractBalance)) {
         console.log(chalk.red(`合约余额不足 / Insufficient contract balance: ${ethers.utils.formatEther(contractBalance)} MAG (需要至少 1000 MAG / Requires at least 1000 MAG)`));
         console.log(chalk.red('请联系 Magnet 链管理员充值合约 / Please contact Magnet chain admin to fund the contract.'));
