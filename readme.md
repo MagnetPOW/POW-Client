@@ -34,7 +34,8 @@ Magnet POW 挖矿客户端，用于执行工作量证明机制。MAG 是 Magnet 
 - 团队唯一 BSC 钱包地址：  
   `0x7649642df8e568fD11FCC7bfb6dfd0E8B371EF56`  
   **请核对，防诈骗**。
-- 有问题请在 Telegram 群咨询。
+- 有问题请在 Telegram 群咨询：  
+  [加入 Telegram 群](https://t.me/MagnetPOW)
 
 ---
 
@@ -72,4 +73,5 @@ Magnet POW mining client for executing the proof-of-work mechanism. MAG is the n
 - Team’s only BSC wallet:  
   `0x7649642df8e568fD11FCC7bfb6dfd0E8B371EF56`  
   **Verify to avoid scams**.
-- Contact staff in the Telegram group for questions.
+- Contact staff in the Telegram group for questions:  
+  [Join Telegram Group](https://t.me/MagnetPOW)
