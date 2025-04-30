@@ -12,11 +12,11 @@ Magnet POW 挖矿客户端，用于执行工作量证明机制。MAG 是 Magnet 
   自建区块链，Gas 费低，效率高。
 
 ### 挖矿模式
-- **免费挖矿**：每次提交有效哈希，获得 `0.3 MAG`。
+- **免费挖矿**：每次提交有效哈希，获得 `0.2 MAG`。
 - **付费挖矿**：
-  - 支付 `30 USDT`：每次提交有效哈希，获得 `7 MAG`。
-  - 支付 `200 USDT`：每次提交有效哈希，获得 `120 MAG`。
-  - 支付 `1000 USDT`：每次提交有效哈希，获得 `1000 MAG`。
+  - 支付 `30 USDT`：每次提交有效哈希，获得 `4 MAG`。
+  - 支付 `200 USDT`：每次提交有效哈希，获得 `60 MAG`。
+  - 支付 `1000 USDT`：每次提交有效哈希，获得 `500 MAG`。
 
 ### 智能合约详情
 - **代币锁定**：合约锁定 `300 亿枚 MAG`，用于第一阶段挖矿分发。
@@ -55,11 +55,11 @@ Magnet POW mining client for executing the proof-of-work mechanism. MAG is the n
   Our blockchain offers low Gas fees and high efficiency.
 
 ### Mining Modes
-- **Free Mining**: Earn `0.3 MAG` per valid hash.
+- **Free Mining**: Earn `0.2 MAG` per valid hash.
 - **Paid Mining**:
-  - Pay `30 USDT`: Earn `7 MAG` per valid hash.
-  - Pay `200 USDT`: Earn `120 MAG` per valid hash.
-  - Pay `1000 USDT`: Earn `1000 MAG` per valid hash.
+  - Pay `30 USDT`: Earn `4 MAG` per valid hash.
+  - Pay `200 USDT`: Earn `60 MAG` per valid hash.
+  - Pay `1000 USDT`: Earn `500 MAG` per valid hash.
 
 ### Smart Contract Details
 - **Token Lock**: `30 billion MAG` locked for first-phase mining.
