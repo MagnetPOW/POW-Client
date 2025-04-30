@@ -24,7 +24,7 @@ Magnet POW 挖矿客户端，用于执行工作量证明机制。MAG 是 Magnet 
 - **空投活动**：加入 Telegram 群，免费领取 `0.1 MAG`。
 
 ### 下载挖矿客户端
-点击 [GitHub 仓库](https://github.com/) 中的 **Release** 部分下载挖矿客户端。  
+点击 [Release 页面](https://github.com/MagnetPOW/POW-Client/releases) 下载挖矿客户端。  
 请根据您的操作系统选择对应版本，我们同时发布了适用于 **Windows/MacOS/Linux** 的挖矿客户端。
 
 ### 付费挖矿激活
@@ -67,7 +67,7 @@ Magnet POW mining client for executing the proof-of-work mechanism. MAG is the n
 - **Airdrop**: Join Telegram group for a free `0.1 MAG` airdrop.
 
 ### Download Mining Client
-Visit the [GitHub Repository](https://github.com/) and navigate to the **Release** section to download the mining client.  
+Visit the [Release Page](https://github.com/MagnetPOW/POW-Client/releases) to download the mining client.  
 Choose the version suitable for your operating system. We provide clients for **Windows/MacOS/Linux**.
 
 ### Activating Paid Mining
