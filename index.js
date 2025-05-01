@@ -216,7 +216,7 @@ async function main() {
     rpcOptions.forEach((rpc, index) => {
         console.log(chalk.cyan(`${index + 1}. ${rpc}`));
     });
-    let rpcIndex = readlineSync.questionInt(chalk.yellow('输入节点编号 / Enter node number: '), { min: 1, max: 4 }) - 1;
+    let rpcIndex = readlineSync.questionInt(chalk.yellow('Enter node number: '), { min: 1, max: 4 }) - 1;
     let RPC_URL = rpcOptions[rpcIndex];
     console.log(chalk.green(`已选择 RPC / Selected RPC: ${RPC_URL}`));
 
@@ -229,7 +229,7 @@ async function main() {
     let attempts = 0;
     const maxAttempts = 3;
     while (attempts < maxAttempts) {
-        privateKey = readlineSync.question(chalk.yellow('\n请输入私钥（以 0x 开头） / Enter private key (starts with 0x): ')).trim();
+        privateKey = readlineSync.question(chalk.yellow('\nEnter private key (starts with 0x): ')).trim();
         if (privateKey.startsWith('0x') && privateKey.length === 66 && /^[0-9a-fA-F]{64}$/.test(privateKey.slice(2))) {
             break;
         }
@@ -274,9 +274,9 @@ async function main() {
     let contractBalance;
     try {
         contractBalance = await contract.getContractBalance();
-        console.log(chalk.green(`合约余额 / Contract balance: ${ethers.utils.formatEther(contractBalance)} MAG`));
+        console.log(chalk.green(`池中余额 / Pool balance: ${ethers.utils.formatEther(contractBalance)} MAG`));
     } catch (balanceError) {
-        console.error(chalk.red('获取合约余额失败 / Failed to get contract balance:'), balanceError.message);
+        console.error(chalk.red('获取池中余额失败 / Failed to get contract balance:'), balanceError.message);
         process.exit(1);
     }
     const minContractBalance = ethers.utils.parseEther('1000'); // LEVEL1000_RE.reward
@@ -288,11 +288,11 @@ async function main() {
 
     // 选择挖矿模式
     console.log(chalk.bold('\n选择挖矿模式 / Select Mining Mode:'));
-    console.log(chalk.cyan('1. 免费挖矿 (0.3 MAG 每次哈希) / Free Mining (0.3 MAG per hash)'));
-    console.log(chalk.cyan('2. 付费 30 USDT (7 MAG 每次哈希) / Pay 30 USDT (7 MAG per hash)'));
-    console.log(chalk.cyan('3. 付费 200 USDT (120 MAG 每次哈希) / Pay 200 USDT (120 MAG per hash)'));
-    console.log(chalk.cyan('4. 付费 1000 USDT (1000 MAG 每次哈希) / Pay 1000 USDT (1000 MAG per hash)'));
-    const modeChoice = readlineSync.questionInt(chalk.yellow('输入 1-4 / Enter 1-4: '), { min: 1, max: 4 });
+    console.log(chalk.cyan('1. 免费挖矿 (0.2 MAG 每次哈希) / Free Mining (0.2 MAG per hash)'));
+    console.log(chalk.cyan('2. 付费 30 USDT (4 MAG 每次哈希) / Pay 30 USDT (4 MAG per hash)'));
+    console.log(chalk.cyan('3. 付费 200 USDT (60 MAG 每次哈希) / Pay 200 USDT (60 MAG per hash)'));
+    console.log(chalk.cyan('4. 付费 1000 USDT (500 MAG 每次哈希) / Pay 1000 USDT (500 MAG per hash)'));
+    const modeChoice = readlineSync.questionInt(chalk.yellow('Enter 1-4: '), { min: 1, max: 4 });
 
     // 检查白名单
     let level;
