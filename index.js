@@ -13,7 +13,7 @@ const rpcOptions = [
 ];
 
 // 合约地址
-const CONTRACT_ADDRESS = '0x0549c1fcc8eca06b5862eb404b7f3ee093449b6e';
+const CONTRACT_ADDRESS = '0x51e0ab7f7db4a2bf4500dfa59f7a4957afc8c02e';
 
 // 合约 ABI
 const CONTRACT_ABI = [
