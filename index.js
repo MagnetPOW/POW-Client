@@ -18,16 +18,6 @@ const CONTRACT_ADDRESS = '0x0549c1fcc8eca06b5862eb404b7f3ee093449b6e';
 // 合约 ABI
 const CONTRACT_ABI = [
     {
-        "inputs": [
-            {"internalType": "address", "name": "user", "type": "address"},
-            {"internalType": "enum MiningContract.WhitelistLevel", "name": "level", "type": "uint8"}
-        ],
-        "name": "addToWhitelist",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
         "inputs": [],
         "stateMutability": "nonpayable",
         "type": "constructor"
@@ -70,13 +60,6 @@ const CONTRACT_ABI = [
         "type": "event"
     },
     {
-        "inputs": [{"internalType": "address", "name": "user", "type": "address"}],
-        "name": "removeFromWhitelist",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
         "inputs": [],
         "name": "renounceOwnership",
         "outputs": [],
@@ -103,15 +86,6 @@ const CONTRACT_ABI = [
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {"indexed": true, "internalType": "address", "name": "user", "type": "address"},
-            {"indexed": false, "internalType": "enum MiningContract.WhitelistLevel", "name": "level", "type": "uint8"}
-        ],
-        "name": "WhitelistUpdated",
-        "type": "event"
     },
     {
         "inputs": [{"internalType": "uint256", "name": "amount", "type": "uint256"}],
@@ -147,58 +121,9 @@ const CONTRACT_ABI = [
         "type": "function"
     },
     {
-        "inputs": [{"internalType": "address", "name": "user", "type": "address"}],
-        "name": "getWhitelistLevel",
-        "outputs": [{"internalType": "enum MiningContract.WhitelistLevel", "name": "", "type": "uint8"}],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "LEVEL1000_REWARD",
-        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "LEVEL200_REWARD",
-        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "LEVEL30_REWARD",
-        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
         "inputs": [],
         "name": "owner",
         "outputs": [{"internalType": "address", "name": "", "type": "address"}],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [{"internalType": "address", "name": "", "type": "address"}],
-        "name": "whitelist1000",
-        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [{"internalType": "address", "name": "", "type": "address"}],
-        "name": "whitelist200",
-        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [{"internalType": "address", "name": "", "type": "address"}],
-        "name": "whitelist30",
-        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
         "stateMutability": "view",
         "type": "function"
     }
@@ -279,41 +204,16 @@ async function main() {
         console.error(chalk.red('获取池中余额失败 / Failed to get contract balance:'), balanceError.message);
         process.exit(1);
     }
-    const minContractBalance = ethers.utils.parseEther('1000'); // LEVEL1000_RE.reward
+    const minContractBalance = ethers.utils.parseEther('3'); // FREE_REWARD
     if (contractBalance.lt(minContractBalance)) {
-        console.log(chalk.red(`合约余额不足 / Insufficient contract balance: ${ethers.utils.formatEther(contractBalance)} MAG (需要至少 1000 MAG / Requires at least 1000 MAG)`));
+        console.log(chalk.red(`合约余额不足 / Insufficient contract balance: ${ethers.utils.formatEther(contractBalance)} MAG (需要至少 3 MAG / Requires at least 3 MAG)`));
         console.log(chalk.red('请联系 Magnet 链管理员充值合约 / Please contact Magnet chain admin to fund the contract.'));
         process.exit(1);
     }
 
-    // 选择挖矿模式
-    console.log(chalk.bold('\n选择挖矿模式 / Select Mining Mode:'));
-    console.log(chalk.cyan('1. 免费挖矿 (0.2 MAG 每次哈希) / Free Mining (0.2 MAG per hash)'));
-    console.log(chalk.cyan('2. 付费 30 USDT (4 MAG 每次哈希) / Pay 30 USDT (4 MAG per hash)'));
-    console.log(chalk.cyan('3. 付费 200 USDT (60 MAG 每次哈希) / Pay 200 USDT (60 MAG per hash)'));
-    console.log(chalk.cyan('4. 付费 1000 USDT (500 MAG 每次哈希) / Pay 1000 USDT (500 MAG per hash)'));
-    const modeChoice = readlineSync.questionInt(chalk.yellow('Enter 1-4: '), { min: 1, max: 4 });
-
-    // 检查白名单
-    let level;
-    try {
-        level = await contract.getWhitelistLevel(wallet.address);
-        const levelNames = ['None', 'Level30', 'Level200', 'Level1000'];
-        console.log(chalk.green(`您的白名单级别 / Your whitelist level: ${levelNames[level]}`));
-    } catch (whitelistError) {
-        console.error(chalk.red('获取白名单级别失败 / Failed to get whitelist level:'), whitelistError.message);
-        process.exit(1);
-    }
-
-    // 验证付费挖矿资格
-    if (modeChoice > 1) {
-        const requiredLevel = modeChoice - 1;
-        if (level < requiredLevel) {
-            console.log(chalk.red('您没有资格进行此级别的付费挖矿。请联系管理员加入白名单。'));
-            console.log(chalk.red('You are not eligible for this level of paid mining. Contact admin to join whitelist.'));
-            process.exit(1);
-        }
-    }
+    // 提示挖矿模式
+    console.log(chalk.bold('\n挖矿模式 / Mining Mode:'));
+    console.log(chalk.cyan('免费挖矿 (3 MAG 每次哈希) / Free Mining (3 MAG per hash)'));
 
     // 开始挖矿
     console.log(chalk.bold.green('\n开始挖矿 / Starting mining...'));
@@ -426,7 +326,7 @@ async function main() {
             if (error.code === 'CALL_EXCEPTION') {
                 console.error(chalk.red('挖矿失败 / Mining failed: 交易被合约拒绝 / Transaction reverted by contract'));
                 console.error(chalk.red(`交易哈希 / Transaction hash: ${error.transactionHash || '未知 / Unknown'}`));
-                console.error(chalk.red('可能原因 / Possible reasons: 钱包未在白名单、余额不足或合约逻辑错误 / Wallet not whitelisted, insufficient balance, or contract logic error'));
+                console.error(chalk.red('可能原因 / Possible reasons: 余额不足或合约逻辑错误 / Insufficient balance or contract logic error'));
                 if (error.reason) {
                     console.error(chalk.red('失败原因 / Reason:'), error.reason);
                 }
